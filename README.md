@@ -8,4 +8,6 @@
 требует redhat-lsb-core, smartmontools  
 
 именование линукс машин по следующему соглашению
-hostname -f должен возвращать fqdn хоста
+hostname -f должен возвращать fqdn хоста  
+это решается этим модулем:  
+https://github.com/spo0okie/puppet_centos_hostname/tree/master
