@@ -9,7 +9,13 @@ domain=`hostname -f| cut -d'.' -f2 | tr [:lower:] [:upper:]`
 comp=`hostname | cut -d'.' -f1 | tr [:lower:] [:upper:]`
 os=`lsb_release -a | grep Description | cut -d ":" -f2 | sed  's/^\s*//'`
 
-hw=`/usr/local/etc/inventory/fn.hwjson.sh`
+if [ "$virtual" -eq "1" ]; then
+	hw=`/usr/local/etc/inventory/fn.hwjson.sh virtual`
+else
+	hw=`/usr/local/etc/inventory/fn.hwjson.sh`
+fi
+
+
 
 writeln() {
 	now=`date +"%F %T"`
