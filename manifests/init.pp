@@ -7,11 +7,19 @@ class spoo_inv (
 	$config="apihost=${apihost}\nlogfile=${logfile}\nvirtual=${virt}"
 	file {'/usr/local/etc/inventory/':
 		ensure	=> directory,
-		source	=> 'puppet:///modules/spoo_inv',
-		recurse	=> true,
+		#source	=> 'puppet:///modules/spoo_inv',
+		#recurse	=> true,
 	} ->
 	file {'/usr/local/etc/inventory/priv.conf.sh':
 		content	=> $config
+	} ->
+	file {'/usr/local/etc/inventory/fn.hwjson.sh':
+		source	=> 'puppet:///modules/spoo_inv/fn.hwjson.sh',
+		mode	=> '755'
+	} ->
+	file {'/usr/local/etc/inventory/inventory.sh':
+		source	=> 'puppet:///modules/spoo_inv/inventory.sh',
+		mode	=> '755'
 	} ->
 	cron {'inventory update':
 		command	=>  '/usr/local/etc/inventory/inventory.sh',
