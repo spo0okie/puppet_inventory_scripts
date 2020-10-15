@@ -11,12 +11,13 @@ if [ -z "$1" ]; then
 	echo "{\"motherboard\": {\"manufacturer\":\"$mb_vendor\",\"product\":\"$mb_product\",\"serial\":\"$mb_sn\"}}"
 	#модель процессора
 	#FIXME: ну это как сработает то если 2 разных модели найдется? а если стоит 2 одинаковых? странная байда
-	cpu=`cat /proc/cpuinfo | grep "model name"| sort -u | cut -d ":" -f2 | sed -e 's/^[[:space:]]*//'`
+	cpu=`grep "model name" /proc/cpuinfo| uniq | cut -d ":" -f2 | sed -e 's/^[[:space:]]*//'`
+	cpucores=`grep ^cpu\\scores /proc/cpuinfo | uniq |  awk '{print $4}'`
 	echo ","
-	echo "{\"processor\": \"$cpu\"}"
+	echo "{\"processor\": \"$cpu\",\"cores\":\"$cpucores\"}"
 else
-	cores=`cat /proc/cpuinfo | tr -d ' \t' | grep "processor:"| sort -u |wc -l`
-	echo "{\"processor\": \"virtual $cores cores\"}"
+	cores=`grep ^cpu\\scores /proc/cpuinfo | uniq |  awk '{print $4}'`
+	echo "{\"processor\": \"virtual $cores cores\",\"cores\":\"$cores\"}"
 	
 fi
 

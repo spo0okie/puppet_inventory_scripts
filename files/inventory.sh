@@ -1,5 +1,5 @@
 #!/bin/bash
-lib_version="0.5nix"
+lib_version="0.5.1nix"
 
 . /usr/local/etc/inventory/priv.conf.sh
 
