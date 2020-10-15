@@ -12,7 +12,7 @@ if [ -z "$1" ]; then
 	#модель процессора
 	#FIXME: ну это как сработает то если 2 разных модели найдется? а если стоит 2 одинаковых? странная байда
 	cpu=`grep "model name" /proc/cpuinfo| uniq | cut -d ":" -f2 | sed -e 's/^[[:space:]]*//'`
-	cpucores=`grep ^cpu\\scores /proc/cpuinfo | uniq |  awk '{print $4}'`
+	cpucores=`grep "^cpu\\scores" /proc/cpuinfo | uniq |  awk '{print $4}'`
 	echo ","
 	echo "{\"processor\": \"$cpu\",\"cores\":\"$cpucores\"}"
 else
