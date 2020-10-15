@@ -3,6 +3,12 @@ lib_version="0.5nix"
 
 . /usr/local/etc/inventory/priv.conf.sh
 
+
+if ! echo "$apihost" | egrep -q "^http"; then
+	apihost="http://$apihost"
+fi
+
+
 PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin:/root/bin
 
 domain=`hostname -f| cut -d'.' -f2 | tr [:lower:] [:upper:]`
@@ -35,11 +41,11 @@ getJsonId() {
 }
 
 getDomainId() {
-	getJsonId "http://$apihost/web/api/domains/$domain"
+	getJsonId "$apihost/web/api/domains/$domain"
 }
 
 getCompId() {
-	getJsonId "http://$apihost/web/api/comps/$domain/$comp"
+	getJsonId "$apihost/web/api/comps/$domain/$comp"
 }
 
 
@@ -65,16 +71,17 @@ updRecord() {
 
 	comp_id=`getCompId`
 	if [ -z "$comp_id" ]; then
-		url="http://$apihost/web/api/comps"
+		url="$apihost/web/api/comps"
 		method=POST
 	else
-		url="http://$apihost/web/api/comps/$comp_id"
+		url="$apihost/web/api/comps/$comp_id"
 		method=PUT
 	fi
 	writeln "sending data ..."
 	writeln curl -X $method $url
 	now=`date +"%F %T"`
 	curl -X $method \
+		--insecure \
 		-d "domain_id=$domain_id" \
 		--data-urlencode "name=$comp" \
 		--data-urlencode "os=$os" \
