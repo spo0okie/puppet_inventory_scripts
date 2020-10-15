@@ -15,15 +15,19 @@ class spoo_inv (
 	} ->
 	file {'/usr/local/etc/inventory/fn.hwjson.sh':
 		source	=> 'puppet:///modules/spoo_inv/fn.hwjson.sh',
-		mode	=> '755'
+		mode	=> '0755'
 	} ->
 	file {'/usr/local/etc/inventory/inventory.sh':
 		source	=> 'puppet:///modules/spoo_inv/inventory.sh',
-		mode	=> '755'
+		mode	=> '0755'
 	} ->
 	cron {'inventory update':
 		command	=>  '/usr/local/etc/inventory/inventory.sh',
 		user	=>  root,
 		minute	=> $cronmin,
+	} ->
+	mc_conf::hotlist {
+		'/usr/local/etc/inventory/': ;
 	}
+
 }
