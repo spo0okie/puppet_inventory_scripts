@@ -1,5 +1,5 @@
 #!/bin/bash
-lib_version="0.5.1nix"
+lib_version="0.6nix"
 
 . /usr/local/etc/inventory/priv.conf.sh
 
@@ -53,9 +53,14 @@ getIPlist() {
 	ip -iec -f inet addr | grep inet | grep -v '127.0.0.1' | sed 's/^\s*//' | cut -d' ' -f2 | cut -d'/' -f1
 }
 
+getMAClist() {
+	ip -iec -f inet link | grep link | grep -v 'loopback' | sed 's/^\s*//' | cut -d' ' -f2
+}
+
 updRecord() {
 	domain_id=`getDomainId`
 	ip=`getIPlist`
+	mac=`getMAClist`
 	if [ -z "$domain_id" ]; then
 		writeln uknown domain $domain
 		exit 10
@@ -68,6 +73,7 @@ updRecord() {
 	writeln "raw_soft="
 	writeln "raw_version=$lib_version"
 	writeln "ip=$ip"
+	writeln "mac=$mac"
 
 	comp_id=`getCompId`
 	if [ -z "$comp_id" ]; then
@@ -79,7 +85,7 @@ updRecord() {
 	fi
 	writeln "sending data ..."
 	writeln curl -X $method $url
-	now=`date +"%F %T"`
+	now=`date -u +"%F %T"`
 	curl -X $method \
 		--insecure \
 		-d "domain_id=$domain_id" \
@@ -89,6 +95,7 @@ updRecord() {
 		--data-urlencode "raw_soft=" \
 		--data-urlencode "raw_version=$lib_version" \
 		--data-urlencode "ip=$ip" \
+		--data-urlencode "mac=$mac" \
 		--data-urlencode "updated_at=$now" \
 		$url >> $logfile
 		echo $? >> $logfile
