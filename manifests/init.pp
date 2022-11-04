@@ -7,8 +7,7 @@ class spoo_inv (
 	$config="apihost=${apihost}\nlogfile=${logfile}\nvirtual=${virt}"
 	file {'/usr/local/etc/inventory/':
 		ensure	=> directory,
-		#source	=> 'puppet:///modules/spoo_inv',
-		#recurse	=> true,
+		require => File['/usr/local/etc']
 	} ->
 	file {'/usr/local/etc/inventory/priv.conf.sh':
 		content	=> $config

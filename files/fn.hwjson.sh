@@ -3,6 +3,7 @@
 #если указан параметр, то система расценивается как виртуальная
 #в таком случае нам нужны скорее количественные характеристики а не качественные
 
+cores=`nproc --all`
 if [ -z "$1" ]; then
 	#ищем производителя материнской платы и 
 	mb_vendor=`dmidecode  | grep -A4 '^Base Board Information'| grep Manufacturer| cut -d':' -f2| sed -e 's/^[[:space:]]*//'`
@@ -12,11 +13,9 @@ if [ -z "$1" ]; then
 	#модель процессора
 	#FIXME: ну это как сработает то если 2 разных модели найдется? а если стоит 2 одинаковых? странная байда
 	cpu=`grep "model name" /proc/cpuinfo| uniq | cut -d ":" -f2 | sed -e 's/^[[:space:]]*//'`
-	cpucores=`grep "^cpu\\scores" /proc/cpuinfo | uniq |  awk '{print $4}'`
 	echo ","
-	echo "{\"processor\": \"$cpu\",\"cores\":\"$cpucores\"}"
+	echo "{\"processor\": \"$cpu\",\"cores\":\"$cores\"}"
 else
-	cores=`grep ^cpu\\scores /proc/cpuinfo | uniq |  awk '{print $4}'`
 	echo "{\"processor\": \"virtual $cores cores\",\"cores\":\"$cores\"}"
 	
 fi
@@ -58,6 +57,12 @@ done
 			case $token in
 				[Ss]ize)
 					mem_capacity=`echo $value | cut -d" " -f1`
+					unit=`echo $value | cut -d' ' -f2`
+					case $unit in
+						[Gg][Bb])
+						mem_capacity=$(( $mem_capacity * 1024 ))
+						;;
+					esac
 				;;
 				"Serial Number")
 					mem_sn=$value

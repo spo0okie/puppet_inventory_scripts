@@ -1,5 +1,5 @@
 #!/bin/bash
-lib_version="0.6nix"
+lib_version="0.6.2nix"
 
 . /usr/local/etc/inventory/priv.conf.sh
 
@@ -54,7 +54,7 @@ getIPlist() {
 }
 
 getMAClist() {
-	ip -iec -f inet link | grep link | grep -v 'loopback' | sed 's/^\s*//' | cut -d' ' -f2
+	ip -iec -f inet link | grep link | grep -v 'loopback' | sed 's/^\s*//' | cut -d' ' -f2 | uniq
 }
 
 updRecord() {
