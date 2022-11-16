@@ -14,9 +14,9 @@ if [ -z "$1" ]; then
 	#FIXME: ну это как сработает то если 2 разных модели найдется? а если стоит 2 одинаковых? странная байда
 	cpu=`grep "model name" /proc/cpuinfo| uniq | cut -d ":" -f2 | sed -e 's/^[[:space:]]*//'`
 	echo ","
-	echo "{\"processor\": \"$cpu\",\"cores\":\"$cores\"}"
+	echo "{\"processor\": {\"model\":\"$cpu\",\"cores\":\"$cores\"}}"
 else
-	echo "{\"processor\": \"virtual $cores cores\",\"cores\":\"$cores\"}"
+	echo "{\"processor\": {\"model\":\"virtual $cores cores\",\"cores\":\"$cores\"}}"
 	
 fi
 
