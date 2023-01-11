@@ -20,7 +20,7 @@ else
 	
 fi
 
-for drive in `lsblk -dnrb | cut -d" " -f1`; do
+for drive in `lsblk -dnrb | grep disk | cut -d" " -f1`; do
 	if [ -z "$1" ]; then
 		drive_model=`smartctl -i /dev/$drive | grep "Device Model" | cut -d':' -f2| sed -e 's/^[[:space:]]*//'`
 		drive_sn=`smartctl -i /dev/$drive | grep "Serial Number" | cut -d':' -f2| sed -e 's/^[[:space:]]*//'`
