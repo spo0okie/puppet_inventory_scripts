@@ -1,5 +1,5 @@
 #!/bin/bash
-lib_version="0.6.4nix"
+lib_version="0.6.6nix"
 
 . /usr/local/etc/inventory/priv.conf.sh
 
@@ -30,7 +30,7 @@ writeln() {
 }
 
 getJson() {
-	wget -q -O - $1 | tr -d "{}\"" | sed 's/,/\n/g'
+	wget --no-check-certificate -q -O - $1 | tr -d "{}\"" | sed 's/,/\n/g'
 	if [ $? -ne 0 ]; then
 		echo "error:$?"
 	fi
@@ -50,11 +50,11 @@ getCompId() {
 
 
 getIPlist() {
-	ip -iec -f inet addr | grep inet | grep -v '127.0.0.1' | sed 's/^\s*//' | cut -d' ' -f2 | cut -d'/' -f1
+	ip -f inet addr | grep inet | grep -v '127.0.0.1' | sed 's/^\s*//' | cut -d' ' -f2 | cut -d'/' -f1
 }
 
 getMAClist() {
-	ip -iec -f inet link | grep link | grep -v 'loopback' | sed 's/^\s*//' | cut -d' ' -f2 | uniq
+	ip -f inet link | grep link | grep -v 'loopback' | sed 's/^\s*//' | cut -d' ' -f2 | uniq
 }
 
 updRecord() {
