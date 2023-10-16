@@ -1,2 +1,2 @@
-apihost=inventory.yamalgazprom.local
+apihost=user:password@inventory.domain.local
 logfile=/var/log/inventory.log
