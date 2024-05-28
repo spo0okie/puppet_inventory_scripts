@@ -3,9 +3,14 @@
 #если указан параметр, то система расценивается как виртуальная
 #в таком случае нам нужны скорее количественные характеристики а не качественные
 
-cores=`nproc --all`
+cores=0
+for count in `dmidecode -t 4 | grep 'Core Count:'| cut -d':' -f2 | cut -d' ' -f2`; do
+	cores=$(( $cores + $count ))
+done
+
+#cores=`nproc --all`
 if [ -z "$1" ]; then
-	#ищем производителя материнской платы и 
+	#ищем производителя материнской платы и
 	mb_vendor=`dmidecode  | grep -A4 '^Base Board Information'| grep Manufacturer| cut -d':' -f2| sed -e 's/^[[:space:]]*//'`
 	mb_product=`dmidecode  | grep -A4 '^Base Board Information'| grep Product| cut -d':' -f2| sed -e 's/^[[:space:]]*//'`
 	mb_sn=`dmidecode  | grep -A4 '^Base Board Information'| grep Serial| cut -d':' -f2| sed -e 's/^[[:space:]]*//'`
@@ -17,22 +22,34 @@ if [ -z "$1" ]; then
 	echo "{\"processor\": {\"model\":\"$cpu\",\"cores\":\"$cores\"}}"
 else
 	echo "{\"processor\": {\"model\":\"virtual $cores cores\",\"cores\":\"$cores\"}}"
-	
+
 fi
 
+#test for
+#grep: The -P and -z options cannot be combined
+grep_test=`echo "" | grep -Pz "" 2>&1 | tr "\0" "\n"`
+if [ -z "$grep_test" ]; then
+	grep_params=-Poz
+else
+	grep_params=-Po
+fi
 
-
-if [ -z "$(which lsblk)" ]; then
+if [ -z "$(which lsblk 2>/dev/null)" ]; then
 	#наверно этот вариант более универсальный, но появилсся позже, когда пришлось работать с машинами без lsblk
 	#поэтому пока используем как план Б на случай отсутствия основного инструмента, чтобы вдруг не отвалились данные на куче машин (толком не протестирована соместимость же)
 	lshw_tmp=`mktemp`
-	lshw -c disk > $lshw_tmp
-	lshw_drives=`cat $lshw_tmp| grep -Pzo "\*-(disk|namespace)(:\d+)\n" | tr "\0" "\n"`
+	lshw -C disk -quiet > $lshw_tmp
+	echo "" >> $lshw_tmp
+	lshw_drives=`cat $lshw_tmp| grep -Po "\*-(disk|namespace)(:\d+)\n" | tr "\0" "\n"`
 
 	for drive in $lshw_drives; do
-		drive_size=$( cat $lshw_tmp | grep -Pzo "\\$drive?(\n.*)+?\s+size:\s+\K\d+\w+" | tr "\0" "\n" )
-		drive_model=$( cat $lshw_tmp | grep -Pzo "\\$drive?(\n.*)+?\s+product:\s+\K.*\n" | tr "\0" "\n" )
-		drive_sn=$( cat $lshw_tmp | grep -Pzo "\\$drive?(\n.*)+?\s+serial:\s+\K.*\n" | tr "\0" "\n" )
+		#cat $lshw_tmp
+		#\K скидывает начало match на новую позицию
+		#\\ вначале экранирует *-disk
+		#(\n.*)+? - не жадный поиск (\n.*)+ - жадный (найдет все строки до конца файлы)
+		drive_size=$( cat $lshw_tmp| grep $grep_params "\\$drive(\n.*)+?\s+size:.*\n" | tr "\0" "\n" | grep 'size:'|cut -d':' -f2|cut -d' ' -f2)
+		drive_model=$( cat $lshw_tmp| grep $grep_params "\\$drive(\n.*)+?\s+product:.*\n" | tr "\0" "\n" | grep 'product:'|cut -d':' -f2|cut -d' ' -f2)
+		drive_sn=$( cat $lshw_tmp| grep $grep_params "\\$drive(\n.*)+?\s+serial:.*\n" | tr "\0" "\n" | grep 'serial:'|cut -d':' -f2|cut -d' ' -f2 )
 		#"
 		#TiB->GiB<-MiB<-KiB
 		if echo $drive_size | grep -q KiB; then
