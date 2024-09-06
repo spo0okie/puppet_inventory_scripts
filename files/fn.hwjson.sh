@@ -3,10 +3,23 @@
 #если указан параметр, то система расценивается как виртуальная
 #в таком случае нам нужны скорее количественные характеристики а не качественные
 
-cores=0
-for count in `dmidecode -t 4 | grep 'Core Count:'| cut -d':' -f2 | cut -d' ' -f2`; do
-	cores=$(( $cores + $count ))
-done
+if which nproc >/dev/null; then
+	#это был первоначально лучший вариант, сбоев не было, но не везде имеется, потом поменяли на чисто третий, но он не надежный
+	#сначала я откатился ко второму, а потом решил вернуть первый как основной кандидат
+	cores=`nproc --all`
+elif which lscpu >/dev/null; then
+	#добавлено, т.к. вариант ниже не панацея.
+	#на VM с debian11 вместо 8 ядер показал 64
+	#на VM с debian9 вместо 4 показал 64
+	#на VM с debian10 вместо 1 показал 0
+	#на всех них эта команда давала нормальный ответ
+	cores=`lscpu -p | egrep -v '^#' | sort -u -t, -k 2,4 | wc -l`
+else
+	cores=0
+	for count in `dmidecode -t 4 | grep 'Core Count:'| cut -d':' -f2 | cut -d' ' -f2`; do
+		cores=$(( $cores + $count ))
+	done
+fi
 
 #cores=`nproc --all`
 if [ -z "$1" ]; then

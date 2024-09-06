@@ -13,6 +13,7 @@ hostname -f должен возвращать fqdn хоста
 https://github.com/spo0okie/puppet_centos_hostname/
 
 ### History
+ * 0.7.2nix: добавлены разные варианты определения cpu вместо одного универсально. сначала пробум nproc, потом lscpu, потом dmidecode
  * 0.7.1nix: добавлена поддержка RHEL5 (curl без urlencode, отсутствуие nproc)
  * 0.7nix: убран предварительный поиск домена в БД, заменено на отправку FQDN имени
  * 0.6.6nix: поправлен wget запрос на чтение к API (--no-check-certificate) для систем без установленных/обновленных CA
