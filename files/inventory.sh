@@ -1,5 +1,5 @@
 #!/bin/bash
-lib_version="0.7.2nix"
+lib_version="0.7.3nix"
 
 . /usr/local/etc/inventory/priv.conf.sh
 
@@ -73,6 +73,7 @@ updRecord() {
     writeln "name=$comp"
     writeln "os=$os"
     writeln "raw_hw=$hw"
+    writeln "ignore_hw=${virtual:-0}"
     writeln "raw_soft="
     writeln "raw_version=$lib_version"
     writeln "ip=$ip"
@@ -88,6 +89,7 @@ updRecord() {
         --data "name=$( urlencode "$comp" )" \
         --data "os=$( urlencode "$os" )" \
         --data "raw_hw=$( urlencode "$hw" )" \
+        --data "ignore_hw=${virtual:-0}" \
         --data "raw_soft=" \
         --data "raw_version=$( urlencode "$lib_version" )"\
         --data "ip=$( urlencode "$ip" )"\

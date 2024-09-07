@@ -4,6 +4,7 @@ class spoo_inv (
 	$virt=0,							#признак виртуальной машины
 	$cronmin='*/47'						#расписание для крона (минуты)
 ){
+	include "logrotate"
 	$config="apihost=${apihost}\nlogfile=${logfile}\nvirtual=${virt}"
 	file {'/usr/local/etc/inventory/':
 		ensure	=> directory,
@@ -24,6 +25,11 @@ class spoo_inv (
 		command	=>  '/usr/local/etc/inventory/inventory.sh',
 		user	=>  root,
 		minute	=> $cronmin,
+	} ->
+	file {'/etc/logrotate.d/inventory':
+		require => File['/etc/logrotate.d'],
+		source => 'puppet:///modules/spoo_inv/logrotate',
+		mode => '0644',
 	} ->
 	mc_conf::hotlist {
 		'/usr/local/etc/inventory/': ;

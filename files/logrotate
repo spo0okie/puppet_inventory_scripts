@@ -1,0 +1,8 @@
+/var/log/inventory.log {
+	daily
+	rotate 4
+	compress
+	missingok
+	notifempty
+	size 10M
+}

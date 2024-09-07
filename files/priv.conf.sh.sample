@@ -1,2 +1,6 @@
+#куда отправлять данные (и учетные данные с правами comps-updater)
 apihost=user:password@inventory.domain.local
+#куда писать лог
 logfile=/var/log/inventory.log
+#признак что это виртуальная машина
+virtual=1
