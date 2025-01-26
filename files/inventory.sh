@@ -1,5 +1,5 @@
 #!/bin/bash
-lib_version="0.7.3nix"
+lib_version="0.7.4nix"
 
 . /usr/local/etc/inventory/priv.conf.sh
 
@@ -17,12 +17,20 @@ writeln() {
     echo $now $* >> $logfile
 }
 
+#Interface exclusions:
+#lo - localhost
+#dockerX - docker ip (host internal network)
+#br-9d72c9b879d7 - docker bridge (host internal network)
+#veth04fc547@if16 - docker virtual ethernet (host internal network)
 getIPlist() {
-    ip -f inet addr | grep inet | grep -v '127.0.0.1' | sed 's/^\s*//' | cut -d' ' -f2 | cut -d'/' -f1
+	#для вывода в 1 строку используется ip -o : проверялось на RHEL5. Ниже не проверялось
+    #ip -f inet addr | grep inet | grep -v '127.0.0.1' | sed 's/^\s*//' | cut -d' ' -f2 | cut -d'/' -f1
+	ip -o -f inet addr | grep -E -v '^[0-9]+: (lo|docker[0-9]+|br-[0-9a-f]{10,}|veth[0-9a-f]{6,}@if[0-9]+)' | sed 's/\s\{1,\}/ /g' | cut -d' ' -f4
 }
 
 getMAClist() {
-    ip -f inet link | grep link | grep -v 'loopback' | sed 's/^\s*//' | cut -d' ' -f2 | uniq
+	#ip -f inet link | grep link | grep -v 'loopback' | sed 's/^\s*//' | cut -d' ' -f2 | uniq
+	ip -o -f inet link | grep -E -v '^[0-9]+: (lo|docker[0-9]+|br-[0-9a-f]{10,}|veth[0-9a-f]{6,}@if[0-9]+)' | sed 's/\s\{1,\}/ /g' | cut -d\\ -f2 | cut -d' ' -f3
 }
 
 #https://gist.github.com/cdown/1163649#gistcomment-4291617
