@@ -17,6 +17,10 @@ class spoo_inv (
 		source	=> 'puppet:///modules/spoo_inv/fn.hwjson.sh',
 		mode	=> '0755'
 	} ->
+	file {'/usr/local/etc/inventory/fn.swjson.sh':
+		source	=> 'puppet:///modules/spoo_inv/fn.swjson.sh',
+		mode	=> '0755'
+	} ->
 	file {'/usr/local/etc/inventory/inventory.sh':
 		source	=> 'puppet:///modules/spoo_inv/inventory.sh',
 		mode	=> '0755'

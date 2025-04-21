@@ -1,4 +1,4 @@
-/var/log/inventory.log {
+/var/log/inventory*.log {
 	daily
 	rotate 4
 	compress
