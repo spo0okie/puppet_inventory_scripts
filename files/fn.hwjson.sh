@@ -3,21 +3,22 @@
 #если указан параметр, то система расценивается как виртуальная
 #в таком случае нам нужны скорее количественные характеристики а не качественные
 
-if which nproc >/dev/null; then
+if which nproc >/dev/null 2>&1; then
 	#это был первоначально лучший вариант, сбоев не было, но не везде имеется, потом поменяли на чисто третий, но он не надежный
 	#сначала я откатился ко второму, а потом решил вернуть первый как основной кандидат
 	cores=`nproc --all`
-elif which lscpu >/dev/null; then
+elif which lscpu >/dev/null 2>&1; then
 	#добавлено, т.к. вариант ниже не панацея.
 	#на VM с debian11 вместо 8 ядер показал 64
 	#на VM с debian9 вместо 4 показал 64
 	#на VM с debian10 вместо 1 показал 0
 	#на всех них эта команда давала нормальный ответ
-	cores=`lscpu -p | egrep -v '^#' | sort -u -t, -k 2,4 | wc -l`
+	#cores=`lscpu -p | egrep -v '^#' | sort -u -t, -k 2,3 | wc -l`
+	cores=`lscpu -p | egrep -v '^#' | cut -d',' -f2,3 | sort -u | wc -l`
 else
 	cores=0
-	for count in `dmidecode -t 4 | grep 'Core Count:'| cut -d':' -f2 | cut -d' ' -f2`; do
-		cores=$(( $cores + $count ))
+	for count in `dmidecode -t 4 | awk -F: '/Core Count:/ { gsub(/^[ \t]+/, "", $2); print $2 }'`; do
+		[ "$count" != "Unknown" ] && cores=$(( cores + count ))
 	done
 fi
 
@@ -50,38 +51,7 @@ fi
 if [ -z "$(which lsblk 2>/dev/null)" ]; then
 	#наверно этот вариант более универсальный, но появилсся позже, когда пришлось работать с машинами без lsblk
 	#поэтому пока используем как план Б на случай отсутствия основного инструмента, чтобы вдруг не отвалились данные на куче машин (толком не протестирована соместимость же)
-	lshw_tmp=`mktemp`
-	lshw -C disk -quiet > $lshw_tmp
-	echo "" >> $lshw_tmp
-	lshw_drives=`cat $lshw_tmp| grep -Po "\*-(disk|namespace)(:\d+)\n" | tr "\0" "\n"`
-
-	for drive in $lshw_drives; do
-		#cat $lshw_tmp
-		#\K скидывает начало match на новую позицию
-		#\\ вначале экранирует *-disk
-		#(\n.*)+? - не жадный поиск (\n.*)+ - жадный (найдет все строки до конца файлы)
-		drive_size=$( cat $lshw_tmp| grep $grep_params "\\$drive(\n.*)+?\s+size:.*\n" | tr "\0" "\n" | grep 'size:'|cut -d':' -f2|cut -d' ' -f2)
-		drive_model=$( cat $lshw_tmp| grep $grep_params "\\$drive(\n.*)+?\s+product:.*\n" | tr "\0" "\n" | grep 'product:'|cut -d':' -f2|cut -d' ' -f2)
-		drive_sn=$( cat $lshw_tmp| grep $grep_params "\\$drive(\n.*)+?\s+serial:.*\n" | tr "\0" "\n" | grep 'serial:'|cut -d':' -f2|cut -d' ' -f2 )
-		#"
-		#TiB->GiB<-MiB<-KiB
-		if echo $drive_size | grep -q KiB; then
-			drive_size=$(( `echo $drive_size | tr -d "KiB"` / 1024 ))MiB
-		fi
-		if echo $drive_size | grep -q MiB; then
-			drive_size=$(( `echo $drive_size | tr -d "MiB"` / 1024 ))
-		fi
-		if echo $drive_size | grep -q TiB; then
-			drive_size=$(( `echo $drive_size | tr -d "TiB"` * 1024 ))
-		fi
-		if echo $drive_size | grep -q GiB; then
-			drive_size=`echo $drive_size | tr -d "GiB"`
-		fi
-		echo ","
-		echo "{\"harddisk\": {\"model\":\"$drive_model\",\"size\":\"$drive_size\",\"serial\":\"$drive_sn\"}}"
-	done
-
-	rm -f $lshw_tmp
+	lshw -C disk -quiet | sed 's/^[[:space:]]*\(\*\-\)/\1/' | awk -f /usr/local/etc/inventory/disks.awk
 else
 	#легаси вариант
 	for drive in `lsblk -dnrb | grep disk | cut -d" " -f1`; do

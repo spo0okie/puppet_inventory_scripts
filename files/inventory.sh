@@ -118,10 +118,6 @@ fi
 
 writeln script started ---------------------------
 
-writeln "detecting FQDN ..."
-comp=`hostname -f | tr [:upper:] [:lower:]`
-writeln "complete."
-
 writeln "detecting OS ..."
 os=`lsb_release -a 2>/dev/null| grep Description | cut -d ":" -f2 | sed  's/^\s*//'`
 writeln "complete."
@@ -134,11 +130,21 @@ writeln "detecting MAC address list ..."
 mac=`getMAClist`
 writeln "complete."
 
+writeln "detecting FQDN ..."
+if [ "$thinstation" == "1" ]; then
+	macuuid=`echo $mac|tr -d " \t\n:"`
+	comp="${thindomain:-WORKGROUP}\\${thinhostname:-thinPC}-${macuuid:6:6}"
+else
+	comp=`hostname -f | tr [:upper:] [:lower:]`
+fi
+writeln "complete: $comp"
+
+
 writeln "detecting hardware ..."
 if [ "$virtual" -eq "1" ]; then
-    hw=`/usr/local/etc/inventory/fn.hwjson.sh virtual`
+    hw=`/usr/local/etc/inventory/fn.hwjson2.sh virtual`
 else
-    hw=`/usr/local/etc/inventory/fn.hwjson.sh`
+    hw=`/usr/local/etc/inventory/fn.hwjson2.sh`
 fi
 
 writeln "detecting software ..."

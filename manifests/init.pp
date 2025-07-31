@@ -21,6 +21,10 @@ class spoo_inv (
 		source	=> 'puppet:///modules/spoo_inv/fn.swjson.sh',
 		mode	=> '0755'
 	} ->
+	file {'/usr/local/etc/inventory/disks.awk':
+		source	=> 'puppet:///modules/spoo_inv/disks.awk',
+		mode	=> '0644'
+	} ->
 	file {'/usr/local/etc/inventory/inventory.sh':
 		source	=> 'puppet:///modules/spoo_inv/inventory.sh',
 		mode	=> '0755'
