@@ -13,6 +13,7 @@ hostname -f должен возвращать fqdn хоста
 https://github.com/spo0okie/puppet_centos_hostname/
 
 ### History
+ * 1.1.1nix: совместимость awk с ubuntu 16 (mawk)
  * 1.1.0nix: исправлен сбор данных по дискам. добавлен режим тонкого клиента (генерация hostname)
  * 0.7.5nix: + xen сетевые интерфейсы добавлены в исключения
  * 0.7.4nix: + docker сетевые интерфейсы добавлены в исключения

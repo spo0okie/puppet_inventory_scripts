@@ -48,10 +48,10 @@ else
 	grep_params=-Po
 fi
 
-if [ -z "$(which lsblk 2>/dev/null)" ]; then
+if [ -z "$(which lsblk 2>/dev/null)" ] || [ -z "$(which smartctl 2>/dev/null)" ]; then
 	#наверно этот вариант более универсальный, но появилсся позже, когда пришлось работать с машинами без lsblk
 	#поэтому пока используем как план Б на случай отсутствия основного инструмента, чтобы вдруг не отвалились данные на куче машин (толком не протестирована соместимость же)
-	lshw -C disk -quiet | sed 's/^[[:space:]]*\(\*\-\)/\1/' | awk -f /usr/local/etc/inventory/disks.awk
+	(echo; lshw -C disk -quiet | sed 's/^[[:space:]]*\(\*\-\)/\1/' )| awk -f /usr/local/etc/inventory/disks.awk -v def=$1
 else
 	#легаси вариант
 	for drive in `lsblk -dnrb | grep disk | cut -d" " -f1`; do

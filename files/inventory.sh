@@ -1,5 +1,5 @@
 #!/bin/bash
-lib_version="1.0.0nix"
+lib_version="1.1.1nix"
 
 . /usr/local/etc/inventory/priv.conf.sh
 
@@ -142,9 +142,9 @@ writeln "complete: $comp"
 
 writeln "detecting hardware ..."
 if [ "$virtual" -eq "1" ]; then
-    hw=`/usr/local/etc/inventory/fn.hwjson2.sh virtual`
+    hw=`/usr/local/etc/inventory/fn.hwjson.sh virtual`
 else
-    hw=`/usr/local/etc/inventory/fn.hwjson2.sh`
+    hw=`/usr/local/etc/inventory/fn.hwjson.sh`
 fi
 
 writeln "detecting software ..."
