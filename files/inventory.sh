@@ -1,5 +1,5 @@
 #!/bin/bash
-lib_version="1.1.2nix"
+lib_version="1.1.3nix"
 
 . /usr/local/etc/inventory/priv.conf.sh
 
@@ -97,19 +97,24 @@ updRecord() {
     url="$apihost/web/api/comps/push"
     writeln "sending data ..."
     writeln curl -X POST $url
-    now=`date -u +"%F %T"`
-        #поддержка --data-urlencode добавилась только в curl 7.18, а в Centos 5 используется 7.15
+	#передача данных в виде аргументов вызывает ошибку argument list too long при большом количестве ПО
+    #поддержка --data-urlencode добавилась только в curl 7.18, а в Centos 5 используется 7.15
+	datafile='/var/log/inventory.data'
+	{
+        echo -n "name=$(urlencode "$comp")"
+        echo -n "&os=$(urlencode "$os")"
+        echo -n "&raw_hw=$(urlencode "$hw")"
+        echo -n "&ignore_hw=${virtual:-0}"
+        echo -n "&raw_soft=$(urlencode "$sw")"
+        echo -n "&raw_version=$(urlencode "$lib_version")"
+        echo -n "&ip=$(urlencode "$ip")"
+        echo -n "&mac=$(urlencode "$mac")"
+    } > $datafile
+
     curl -X POST \
         -vs \
         --insecure \
-        --data "name=$( urlencode "$comp" )" \
-        --data "os=$( urlencode "$os" )" \
-        --data "raw_hw=$( urlencode "$hw" )" \
-        --data "ignore_hw=${virtual:-0}" \
-        --data "raw_soft=$( urlencode "$sw" )" \
-        --data "raw_version=$( urlencode "$lib_version" )"\
-        --data "ip=$( urlencode "$ip" )"\
-        --data "mac=$( urlencode "$mac" )" \
+		--data @"$datafile" \
         $url >> $logfile
         echo $? >> $logfile
 }
