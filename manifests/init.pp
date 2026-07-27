@@ -2,16 +2,21 @@ class spoo_inv (
 	$apihost='inventory.domain.local',	#где находится сервер инвентаризации
 	$logfile='/var/log/inventory.log',	#куда логировать работу скрипта
 	$virt=0,							#признак виртуальной машины
-	$cronmin='*/47'						#расписание для крона (минуты)
+	$cronmin='*/30',					#расписание для крона (минуты)
+	$comp_id_file='/var/lib/inventory/comp.id'	#где хранить ID своей записи в БД
 ){
 	include "logrotate"
-	$config="apihost=${apihost}\nlogfile=${logfile}\nvirtual=${virt}"
+	$config="apihost=${apihost}\nlogfile=${logfile}\nvirtual=${virt}\ncomp_id_file=${comp_id_file}"
 	file {'/usr/local/etc/inventory/':
 		ensure	=> directory,
 		require => File['/usr/local/etc']
 	} ->
 	file {'/usr/local/etc/inventory/priv.conf.sh':
 		content	=> $config
+	} ->
+	#каталог под состояние скрипта (запомненный ID записи в БД)
+	file {'/var/lib/inventory/':
+		ensure	=> directory
 	} ->
 	file {'/usr/local/etc/inventory/fn.hwjson.sh':
 		source	=> 'puppet:///modules/spoo_inv/fn.hwjson.sh',

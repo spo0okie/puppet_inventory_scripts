@@ -1,5 +1,5 @@
 #!/bin/bash
-lib_version="1.1.4nix"
+lib_version="1.2.0nix"
 
 . /usr/local/etc/inventory/priv.conf.sh
 
@@ -83,6 +83,28 @@ _test_urlencode() {
 }
 _test_urlencode
 
+#читает сохраненный ID записи в БД инвентаризации.
+#пусто, если файла нет или в нем не число
+readCompId() {
+	[ -f "$comp_id_file" ] || return 0
+	head -n 1 "$comp_id_file" | tr -d ' \t\r\n' | grep -E '^[1-9][0-9]*$'
+}
+
+#сохраняет ID записи в БД для следующих запусков
+saveCompId() {
+	comp_id_dir=`dirname "$comp_id_file"`
+	[ -d "$comp_id_dir" ] || mkdir -p "$comp_id_dir"
+	echo "$1" > "$comp_id_file"
+}
+
+#вытаскивает ID записи из ответа сервера.
+#сервер отдает модель в JSON, где id идет первым полем, поэтому берем первое совпадение
+#(остальные *_id не подходят под шаблон - перед id стоит кавычка)
+respCompId() {
+	[ -f "$respfile" ] || return 0
+	tr -d ' \t\r\n' < "$respfile" | grep -o '"id":[0-9]\{1,\}' | head -n 1 | cut -d: -f2
+}
+
 updRecord() {
     writeln "data gathered:"
     writeln "domain_id=$domain_id"
@@ -95,11 +117,16 @@ updRecord() {
     writeln "ip=$ip"
     writeln "mac=$mac"
     url="$apihost/web/api/comps/push"
+
+	#ID своей записи в БД: если он есть, сервер обновит именно ее, а не будет искать по имени.
+	#именно это позволяет пережить переименование хоста, не наплодив клонов
+	compid=`readCompId`
+	writeln "saved comp id=${compid:-<none>}"
+
     writeln "sending data ..."
     writeln curl -X POST $url
 	#передача данных в виде аргументов вызывает ошибку argument list too long при большом количестве ПО
     #поддержка --data-urlencode добавилась только в curl 7.18, а в Centos 5 используется 7.15
-	datafile='/var/log/inventory.data'
 	{
         echo -n "name=$(urlencode "$comp")"
         echo -n "&os=$(urlencode "$os")"
@@ -109,19 +136,42 @@ updRecord() {
         echo -n "&raw_version=$(urlencode "$lib_version")"
         echo -n "&ip=$(urlencode "$ip")"
         echo -n "&mac=$(urlencode "$mac")"
+		#если сохраненной записи в БД уже нет, сервер сам откатится на поиск по имени и создание новой
+        [ -n "$compid" ] && echo -n "&id=$compid"
     } > $datafile
 
-    curl -X POST \
+	#тело ответа нужно отдельно от лога: из него забирается ID записи
+    http_code=`curl -X POST \
         -vs \
         --insecure \
+        -H 'accept: application/json' \
 		--data @"$datafile" \
-        $url >> $logfile
-        echo $? >> $logfile
+        -o "$respfile" \
+        -w '%{http_code}' \
+        $url 2>> $logfile`
+    writeln "curl exit=$? http=$http_code"
+    cat "$respfile" >> $logfile
+    echo >> $logfile
+
+    newid=`respCompId`
+    if [ -n "$newid" ]; then
+        writeln "comp id in database=$newid"
+        saveCompId "$newid"
+    else
+        writeln "WARNING: no comp id in server response"
+    fi
 }
 
 if [ -z "$logfile" ]; then
     logfile=/var/log/inventory.log
 fi
+
+if [ -z "$comp_id_file" ]; then
+    comp_id_file=/var/lib/inventory/comp.id
+fi
+
+datafile='/var/log/inventory.data'
+respfile='/var/log/inventory.response'
 
 writeln script started ---------------------------
 
