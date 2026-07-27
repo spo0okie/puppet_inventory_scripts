@@ -15,6 +15,7 @@ https://github.com/spo0okie/puppet_centos_hostname/
 
 ## History
 
+* 1.1.4nix: ! в disks.awk не работала конвертация единиц размера дисков (TiB/MiB/KiB отдавались как есть)
 * 1.1.3nix: данные передаются в curl в файле, а не в виде аргументов изза ошибки argument list too long
 * 1.1.2nix: lshw как основной источник дисков
 * 1.1.1nix: совместимость awk с ubuntu 16 (mawk)

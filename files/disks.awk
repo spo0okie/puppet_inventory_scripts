@@ -35,25 +35,26 @@ $1 ~ /^(disk|namespace)/ {
 
 	# Приведение к GiB
 	if (size != "") {
+		#в регулярках только [ \t] вместо [[:space:]]: mawk 1.3.3 (ubuntu16/18, debian9/10) не знает POSIX-классов
 		val = size
-		sub(/[[:space:]]*\(.*$/, "", val)		# Удалить всё после пробела или скобок
+		sub(/[ \t]*\(.*$/, "", val)				# Удалить всё после пробела или скобок
 		sub(/[A-Za-z].*$/, "", val)				# Удалить единицы (оставить только число)
 		val += 0								# Преобразовать в число
 
 		unit = size
-		sub(/^[0-9.]+[[:space:]]*/, "", unit)	# Удалить число — оставить только единицы
-		sub(/[[:space:]]*\(.*$/, "", unit)		# Убрать всё после скобок (если есть)
+		sub(/^[0-9.]+[ \t]*/, "", unit)			# Удалить число — оставить только единицы
+		sub(/[ \t]*\(.*$/, "", unit)			# Убрать всё после скобок (если есть)
 
 		# Конвертация в GiB
-		if (u == "KiB")
+		if (unit == "KiB")
 			size_val = val / (1024 * 1024)
-		else if (u == "MiB")
+		else if (unit == "MiB")
 			size_val = val / 1024
-		else if (u == "GiB")
+		else if (unit == "GiB")
 			size_val = val
-		else if (u == "TiB")
+		else if (unit == "TiB")
 			size_val = val * 1024
-		else if (u == "PiB")
+		else if (unit == "PiB")
 			size_val = val * 1024 * 1024
 		else
 			size_val = val  # если единицы не распознаны — оставим как есть
